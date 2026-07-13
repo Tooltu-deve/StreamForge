@@ -1,1 +1,11 @@
 docs/superpowers/*
+
+# Terraform
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+crash.log
+*.tfvars          
+!example.tfvars
+override.tf
+override.tf.json

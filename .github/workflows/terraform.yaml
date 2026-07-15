@@ -22,7 +22,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        dir: [infra/foundation, infra/envs/dev]
+        dir: [infra/foundation, infra/env/dev]
     defaults:
       run:
         working-directory: ${{ matrix.dir }}

@@ -13,7 +13,7 @@ One sentence: what new capability this phase adds to the system.
 ## 3. How to provision (Deploy)
 ```bash
 # Commands in exact order
-cd infra/envs/dev
+cd infra/env/dev
 terraform init
 terraform plan
 terraform apply

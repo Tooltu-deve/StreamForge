@@ -2,14 +2,14 @@ name: Terraform CI
 
 on:
   pull_request:
-    paths: ["infra/**", ".github/workflows/terraform.yml"]
+    paths: ["infra/**", ".github/workflows/terraform.yaml"]
   push:
     branches: [main]
     paths: ["infra/**"]
 
 permissions:
   id-token: write        
-  contents: read
+  contents: read 
   pull-requests: write   
 
 env:
@@ -22,7 +22,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        dir: [infra/foundation, infra/envs/dev]
+        dir: [infra/foundation, infra/env/dev]
     defaults:
       run:
         working-directory: ${{ matrix.dir }}

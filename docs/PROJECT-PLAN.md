@@ -53,7 +53,7 @@ Each phase, Phase 0–7, runs through 5 steps, with no skipping. The phase's obj
 
 | Week | Date (2026) | Phase | Focus | CV milestone | Status |
 |---|---|---|---|---|---|
-| **1** | 29/06 – 05/07 | Phase 0 | Foundation: repo, TF backend, Route53, ACM, CI baseline | Domain + secure state | ☐ |
+| **1** | 29/06 – 05/07 | Phase 0 | Foundation: repo, TF backend, Route53, ACM, CI baseline | Domain + secure state | ✅ |
 | **2-3** | 06/07 – 19/07 | Phase 1 | Core infrastructure: VPC, EKS, node groups, S3, DynamoDB, Cognito, ECR | `apply` builds the whole foundation | ☐ |
 | **4-5** | 20/07 – 02/08 | Phase 2 | Dockerize 5 services + FE, Helm, ALB Ingress, external-dns, cert-manager, CI/CD | Reach `app.<domain>`, upload+watch | ☐ |
 | **6-7** | 03/08 – 16/08 | Phase 3 | Transcode pipeline: S3→SQS→FFmpeg worker(spot)→HLS→DynamoDB, KEDA, DLQ | Auto-transcode, ABR streaming | ☐ |
@@ -63,12 +63,16 @@ Each phase, Phase 0–7, runs through 5 steps, with no skipping. The phase's obj
 | **12** | 14/09 – 20/09 | Phase 7 | Observability: Container Insights, ADOT/X-Ray, Managed Grafana, SLO/alarm, k6, blog | Finalization + documentation | ☐ |
 
 > Buffer: if all 12 weeks are used up, Phase 3 and Phase 5 are the two hardest parts — prioritize buffer there. If short on time, the "advanced" parts can be cut (see YAGNI §9 of the design doc), keeping the backbone intact.
+>
+> ¹ **Phase 0 done** except **Route53 + ACM**, which are **deferred** (the hosted zone is in a separate AWS account — cross-account access). These must be completed before Phase 2.
 
 ---
 
 ## 3. Task details by phase
 
 ### Phase 0 — Foundation (Week 1)
+**Status:** ✅ **Done** — remote state backend (S3 + KMS + native lock), foundation stack (GitHub OIDC provider + CI IAM role), and the Terraform CI workflow (fmt/validate/tflint/checkov + plan-comment, auth via OIDC) are live and green. ⏸️ **Route53 + ACM (tasks 3–4) deferred** — hosted zone is cross-account; complete before Phase 2. AWS Budget was created via the console (task 5; not yet codified in Terraform).
+
 **Requirements:** secure TF state + domain pointing to Route53 + certificates ready + a CI baseline for Terraform.
 
 **Tasks**
@@ -94,7 +98,7 @@ Each phase, Phase 0–7, runs through 5 steps, with no skipping. The phase's obj
 4. `feat: module dynamodb` — catalog/metadata table (PK/SK design, on-demand billing).
 5. `feat: module cognito` — User Pool + App Client + `free`/`premium` groups; hosted UI domain.
 6. `feat: module ecr` — repos for each service; scan-on-push enabled.
-7. `refactor: root module wiring` — `infra/envs/dev/` assembles the modules; `terraform output` exposes values for later phases.
+7. `refactor: root module wiring` — `infra/env/dev/` assembles the modules; `terraform output` exposes values for later phases.
 8. `test: infra validation` — `checkov` passes; `terraform plan` shows zero-diff after apply; smoke: `kubectl get nodes` shows both node groups.
 
 **DoD:** `apply` from scratch produces a running cluster + all resources; `kubectl` can connect; `destroy` is clean.
@@ -111,7 +115,7 @@ Each phase, Phase 0–7, runs through 5 steps, with no skipping. The phase's obj
 3. `feat: dockerize` — multi-stage Dockerfile, non-root, slim; `.dockerignore`.
 4. `feat: frontend SPA` — minimal React (list, upload form, player); build → S3 + CloudFront (OAC).
 5. `feat: helm charts` — 1 base chart + values for each service (replicas, resources, probes, env).
-6. `feat: alb ingress + addons` — AWS Load Balancer Controller, external-dns, cert-manager; Ingress routing path → service.
+6. `feat: cloudfront-fronted ingress` — AWS Load Balancer Controller, external-dns, cert-manager. **CloudFront is the single public entry** (default → S3 frontend, `/api/*` → ALB origin, HLS → S3 transcoded via OAC); lock the ALB to CloudFront-only (origin secret header + security-group scoping via the CloudFront managed prefix list). See the data-plane diagram (§ docs/diagrams) + ADR.
 7. `ci: build-scan-push` — workflow to build image → trivy scan → push ECR via OIDC; tag by git SHA.
 8. `ci: deploy dev` — `helm upgrade` onto the cluster (temporary; Phase 4 will replace this with ArgoCD).
 9. `test: smoke e2e` — log in to Cognito → upload a file → see the DynamoDB record → download it back from S3.
@@ -185,7 +189,8 @@ Each phase, Phase 0–7, runs through 5 steps, with no skipping. The phase's obj
 3. `feat: kyverno policies` — only allow signed images + from your own ECR; forbid `:latest`; forbid root; require resource limits & probes; verify on the cluster.
 4. `feat: external secrets` — ESO pulls secrets (CloudFront private key, payOS key) from Secrets Manager → K8s Secret; remove all secrets from Git/Helm values.
 5. `refactor: irsa least-privilege` — audit each service account, tighten policies to the minimum (e.g., worker: read raw + write transcoded + delete SQS msg). Document the permission matrix.
-6. `test: policy & perms` — deploy an unsigned image → blocked by Kyverno; a pod missing permissions → clear error (proving least-privilege).
+6. `feat: waf web acl` — attach an AWS WAF web ACL to CloudFront (AWS managed rule sets: common + SQLi + a rate-based rule); protects the public app and the payOS webhook path.
+7. `test: policy & perms` — deploy an unsigned image → blocked by Kyverno; a pod missing permissions → clear error (proving least-privilege).
 
 **DoD:** an unsigned image can't be deployed; no secret is in Git; each SA has a minimal policy along with a reference table.
 **ADR:** keyless vs key-based cosign; scope of Kyverno enforce vs audit.

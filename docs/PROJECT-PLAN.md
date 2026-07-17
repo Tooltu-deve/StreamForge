@@ -1,6 +1,6 @@
 # StreamForge Project Execution Plan — following professional SDLC standards
 
-> **Living document.** Update status at the end of each week. Architecture source: [superpowers/specs/2026-06-26-streamforge-design.md](superpowers/specs/2026-06-26-streamforge-design.md). Terminology: [GLOSSARY.md](GLOSSARY.md).
+
 
 ## Context
 

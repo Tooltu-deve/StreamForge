@@ -1,5 +1,8 @@
 docs/superpowers/*
 
+# Personal study notes (not part of the repo)
+docs/notes/
+
 # Terraform
 **/.terraform/*
 *.tfstate

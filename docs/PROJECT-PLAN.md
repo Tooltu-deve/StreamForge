@@ -96,7 +96,7 @@ Each phase, Phase 0–7, runs through 5 steps, with no skipping. The phase's obj
 2. `feat: module eks` — EKS cluster; **2 managed node groups**: on-demand (API) + spot (transcode, taint+label); OIDC provider for IRSA; aws-auth.
 3. `feat: module s3` — raw / transcoded / frontend buckets (private, block public, encrypt, lifecycle to delete raw after N days).
 4. `feat: module dynamodb` — catalog/metadata table (PK/SK design, on-demand billing).
-5. `feat: module cognito` — User Pool + App Client + `free`/`premium` groups; hosted UI domain.
+5. `feat: module cognito` — User Pool + App Client (`generate_secret=false`, SRP flow) + `free`/`premium` groups. Custom UI via SDK; no Hosted UI domain.
 6. `feat: module ecr` — repos for each service; scan-on-push enabled.
 7. `refactor: root module wiring` — `infra/env/dev/` assembles the modules; `terraform output` exposes values for later phases.
 8. `test: infra validation` — `checkov` passes; `terraform plan` shows zero-diff after apply; smoke: `kubectl get nodes` shows both node groups.

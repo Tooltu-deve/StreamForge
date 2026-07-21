@@ -30,6 +30,11 @@ resource "aws_eks_cluster" "this" {
   version  = var.cluster_version
   role_arn = aws_iam_role.cluster.arn
 
+  # Access Entries require API (or API_AND_CONFIG_MAP); default CONFIG_MAP won't work (ADR-0006).
+  access_config {
+    authentication_mode = "API"
+  }
+
   enabled_cluster_log_types = var.control_plane_log_types
 
   vpc_config {

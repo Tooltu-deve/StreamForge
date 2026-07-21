@@ -5,5 +5,5 @@ output "repo_urls" {
 
 output "repo_arns" {
   description = "Repositories arns"
-  value       = { for k, r in aws_ecr_repository.this : k => r.repository_arn }
+  value       = { for k, r in aws_ecr_repository.this : k => r.arn }
 }

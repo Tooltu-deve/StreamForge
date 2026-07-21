@@ -1,0 +1,8 @@
+output "cluster_name" { value = module.eks.cluster_name }
+output "cluster_endpoint" { value = module.eks.cluster_endpoint }
+output "oidc_provider_arn" { value = module.eks.oidc_provider_arn }
+output "bucket_names" { value = module.s3.bucket_names }
+output "table_name" { value = module.dynamodb.table_name }
+output "user_pool_id" { value = module.cognito.user_pool_id }
+output "app_client_id" { value = module.cognito.app_client_id }
+output "ecr_repo_urls" { value = module.ecr.repo_urls }

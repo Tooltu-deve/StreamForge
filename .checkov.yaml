@@ -1,0 +1,43 @@
+# Checkov configuration for StreamForge.
+#
+# Every skip below is a REVIEWED, intentional Phase 1 decision — not an
+# unexamined gap. Grouped by rationale so the exceptions read as a policy,
+# not a mute button. See docs/adr/ for the design decisions behind them.
+#
+# Findings that were genuinely worth fixing were fixed in code instead of
+# skipped (e.g. CKV_AWS_23 SG descriptions, CKV_AWS_300 abort-multipart,
+# CKV_AWS_37 full control-plane logging).
+
+skip-check:
+  # -- Ephemeral project: no customer-managed KMS anywhere (cost).
+  #    SSE-S3 / AWS-owned keys are used instead. --
+  - CKV_AWS_145   # S3 not KMS-encrypted (SSE-S3 by design)
+  - CKV_AWS_136   # ECR not KMS-encrypted (AES256 default)
+  - CKV_AWS_119   # DynamoDB not CMK-encrypted (AWS-owned key)
+  - CKV_AWS_158   # CloudWatch log group not KMS-encrypted
+  - CKV_AWS_58    # EKS secrets envelope encryption (KMS) out of scope
+
+  # -- Ephemeral / cost: long retention, backups, replication not needed. --
+  - CKV_AWS_338   # Log retention <1yr (3 days intentional)
+  - CKV_AWS_28    # DynamoDB PITR disabled (ephemeral)
+  - CKV_AWS_144   # S3 cross-region replication (overkill for a portfolio)
+  - CKV_AWS_18    # S3 access logging (avoids a dedicated log bucket)
+  - CKV_AWS_21    # S3 versioning only on the frontend bucket by design
+
+  # -- Features wired in later phases, not Phase 1. --
+  - CKV2_AWS_62   # S3 event notifications -> Phase 3 (transcode trigger)
+  - CKV2_AWS_61   # S3 lifecycle only on the raw bucket by design
+
+  # -- Intentional network posture (see ADR-0004 / ADR-0006). --
+  - CKV_AWS_39    # EKS public endpoint enabled for operator kubectl (CIDR-locked)
+  - CKV_AWS_38    # public_access_cidrs is the operator IP only, never 0.0.0.0/0
+  - CKV_AWS_130   # public subnets assign public IPs (required for ELB/NAT)
+  - CKV_AWS_382   # VPC-endpoint SG egress open (standard for interface endpoints)
+
+  # -- Checkov false-positives / policy-DB lag. --
+  - CKV2_AWS_6    # S3 Public Access Block IS present; graph check misses it under for_each
+  - CKV_AWS_339   # EKS 1.36 is the latest GA release; checkov's version list lags (ADR-0006 D2)
+
+  # -- Foundation CI role is read-only; Describe*/List* cannot be resource-scoped. --
+  - CKV_AWS_356   # wildcard resource required for restrictable read-only actions
+  - CKV_AWS_107   # iam:Get* in a plan-only role poses no credential-exposure risk

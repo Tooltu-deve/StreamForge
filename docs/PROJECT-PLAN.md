@@ -1,6 +1,6 @@
 # StreamForge Project Execution Plan — following professional SDLC standards
 
-> **Living document.** Update status at the end of each week. Architecture source: [superpowers/specs/2026-06-26-streamforge-design.md](superpowers/specs/2026-06-26-streamforge-design.md). Terminology: [GLOSSARY.md](GLOSSARY.md).
+
 
 ## Context
 
@@ -54,7 +54,7 @@ Each phase, Phase 0–7, runs through 5 steps, with no skipping. The phase's obj
 | Week | Date (2026) | Phase | Focus | CV milestone | Status |
 |---|---|---|---|---|---|
 | **1** | 29/06 – 05/07 | Phase 0 | Foundation: repo, TF backend, Route53, ACM, CI baseline | Domain + secure state | ✅ |
-| **2-3** | 06/07 – 19/07 | Phase 1 | Core infrastructure: VPC, EKS, node groups, S3, DynamoDB, Cognito, ECR | `apply` builds the whole foundation | ☐ |
+| **2-3** | 06/07 – 19/07 | Phase 1 | Core infrastructure: VPC, EKS, node groups, S3, DynamoDB, Cognito, ECR | `apply` builds the whole foundation | ✅ |
 | **4-5** | 20/07 – 02/08 | Phase 2 | Dockerize 5 services + FE, Helm, ALB Ingress, external-dns, cert-manager, CI/CD | Reach `app.<domain>`, upload+watch | ☐ |
 | **6-7** | 03/08 – 16/08 | Phase 3 | Transcode pipeline: S3→SQS→FFmpeg worker(spot)→HLS→DynamoDB, KEDA, DLQ | Auto-transcode, ABR streaming | ☐ |
 | **8** | 17/08 – 23/08 | Phase 4 | GitOps ArgoCD + Argo Rollouts canary + auto-rollback | Push to Git = deploy, canary | ☐ |
@@ -89,6 +89,8 @@ Each phase, Phase 0–7, runs through 5 steps, with no skipping. The phase's obj
 ---
 
 ### Phase 1 — Core infrastructure (Week 2-3)
+**Status:** ✅ **Done** — six custom Terraform modules (`vpc`, `eks`, `s3`, `dynamodb`, `cognito`, `ecr`) + root wiring in `infra/env/dev/`. A single `terraform apply` builds the whole foundation from scratch and `kubectl get nodes` connects (EKS via Access Entries, `authentication_mode = API`); `destroy` is clean. CI hardened: `checkov` is now a hard gate (`soft_fail: false`) with a documented `.checkov.yaml` baseline; `tflint` green. ADR-0004/0005/0006 written, runbook `docs/runbook/` updated.
+
 **Requirements:** a single `terraform apply` builds the entire platform from scratch.
 
 **Tasks**
@@ -96,7 +98,7 @@ Each phase, Phase 0–7, runs through 5 steps, with no skipping. The phase's obj
 2. `feat: module eks` — EKS cluster; **2 managed node groups**: on-demand (API) + spot (transcode, taint+label); OIDC provider for IRSA; aws-auth.
 3. `feat: module s3` — raw / transcoded / frontend buckets (private, block public, encrypt, lifecycle to delete raw after N days).
 4. `feat: module dynamodb` — catalog/metadata table (PK/SK design, on-demand billing).
-5. `feat: module cognito` — User Pool + App Client + `free`/`premium` groups; hosted UI domain.
+5. `feat: module cognito` — User Pool + App Client (`generate_secret=false`, SRP flow) + `free`/`premium` groups. Custom UI via SDK; no Hosted UI domain.
 6. `feat: module ecr` — repos for each service; scan-on-push enabled.
 7. `refactor: root module wiring` — `infra/env/dev/` assembles the modules; `terraform output` exposes values for later phases.
 8. `test: infra validation` — `checkov` passes; `terraform plan` shows zero-diff after apply; smoke: `kubectl get nodes` shows both node groups.

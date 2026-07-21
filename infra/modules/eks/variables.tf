@@ -72,7 +72,7 @@ variable "spot_scaling" {
 variable "control_plane_log_types" {
   description = "EKS control-plane log types to ship to CloudWatch"
   type        = list(string)
-  default     = ["api", "audit", "authenticator"]
+  default     = ["api", "audit", "authenticator", "controllerManager", "scheduler"]
 }
 
 variable "log_retention_days" {

@@ -58,8 +58,9 @@ jobs:
         uses: bridgecrewio/checkov-action@v12
         with:
           directory: ${{ matrix.dir }}
+          config_file: .checkov.yaml
           quiet: true
-          soft_fail: true   
+          soft_fail: false
 
       - name: Terraform plan
         id: plan

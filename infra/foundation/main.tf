@@ -83,6 +83,14 @@ data "aws_iam_policy_document" "ci_permissions" {
       "route53:List*",
       "acm:Describe*",
       "acm:List*",
+      "eks:Describe*", "eks:List*",
+      "dynamodb:Describe*", "dynamodb:List*",
+      "ecr:Describe*", "ecr:List*", "ecr:GetRepositoryPolicy",
+      "cognito-idp:Describe*", "cognito-idp:List*", "cognito-idp:Get*",
+      "kms:Describe*", "kms:List*",
+      "logs:Describe*",
+      "autoscaling:Describe*",
+
     ]
     resources = ["*"]
   }

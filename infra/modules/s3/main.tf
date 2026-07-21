@@ -51,6 +51,9 @@ resource "aws_s3_bucket_lifecycle_configuration" "raw" {
     expiration {
       days = var.raw_expiration_days
     }
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 7
+    }
   }
 }
 

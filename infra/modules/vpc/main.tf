@@ -126,6 +126,7 @@ resource "aws_security_group" "vpce" {
   }
 
   egress {
+    description = "Allow all outbound from interface endpoints"
     from_port   = 0
     to_port     = 0
     protocol    = "-1"

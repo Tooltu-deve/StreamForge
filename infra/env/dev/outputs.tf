@@ -21,3 +21,11 @@ output "vpc_id" {
   description = "VPC id (for the ALB controller)"
   value       = module.vpc.vpc_id
 }
+
+output "raw_bucket_arn" {
+  value = module.s3.bucket_arns["raw"]
+}
+
+output "table_arn" {
+  value = module.dynamodb.table_arn
+}

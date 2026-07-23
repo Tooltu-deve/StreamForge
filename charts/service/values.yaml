@@ -1,0 +1,13 @@
+name: "" 
+namespace: streamforge 
+replicas: 2
+image: 
+  repo: "" 
+  tag: "dev" 
+serviceAccount: 
+  roleArn: "" 
+containerPort: 8080
+env: {}
+resources: 
+  requests: { cpu: 50m, memory: 128Mi }
+  limits: { cpu: 250m, memory: 256Mi }

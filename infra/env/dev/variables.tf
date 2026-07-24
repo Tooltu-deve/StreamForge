@@ -34,3 +34,14 @@ variable "cluster_admin_principal_arns" {
 variable "ecr_services" {
   type = list(string)
 }
+
+variable "app_domain" {
+  sensitive = true
+  type      = string
+}
+
+variable "origin_secret" {
+  sensitive = true
+  type      = string
+}
+

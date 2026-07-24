@@ -41,3 +41,11 @@ skip-check:
   # -- Foundation CI role is read-only; Describe*/List* cannot be resource-scoped. --
   - CKV_AWS_356   # wildcard resource required for restrictable read-only actions
   - CKV_AWS_107   # iam:Get* in a plan-only role poses no credential-exposure risk
+
+  # -- CloudFront (Phase 2b): hardening deferred to later phases. --
+  - CKV_AWS_68    # WAF on CloudFront -> Phase 6 (DevSecOps)
+  - CKV2_AWS_47   # WAF AMR for Log4j -> Phase 6
+  - CKV_AWS_86    # CloudFront access logging -> Phase 7 (observability), avoids a log bucket now
+  - CKV_AWS_310   # origin failover overkill for a single-origin portfolio
+  - CKV_AWS_374   # geo restriction intentionally none (global access)
+  - CKV2_AWS_32   # response-headers policy (security headers) deferred

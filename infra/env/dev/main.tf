@@ -37,3 +37,27 @@ module "eks" {
   public_access_cidrs          = var.public_access_cidrs
   cluster_admin_principal_arns = var.cluster_admin_principal_arns
 }
+
+data "aws_lb" "api" {
+  tags = {
+    "ingress.k8s.aws/stack" = "streamforge/streamforge"
+  }
+}
+
+data "aws_acm_certificate" "cf" {
+  provider    = aws.us_east_1
+  domain      = var.app_domain # "app.<domain>"
+  statuses    = ["ISSUED"]
+  most_recent = true
+}
+
+module "cloudfront" {
+  source                 = "../../modules/cloudfront"
+  frontend_bucket_id     = module.s3.bucket_names["frontend"]
+  frontend_bucket_arn    = module.s3.bucket_arns["frontend"]
+  frontend_bucket_domain = "${module.s3.bucket_names["frontend"]}.s3.${var.region}.amazonaws.com"
+  alb_dns_name           = data.aws_lb.api.dns_name
+  acm_cert_arn           = data.aws_acm_certificate.cf.arn
+  aliases                = [var.app_domain]
+  origin_secret          = var.origin_secret
+}

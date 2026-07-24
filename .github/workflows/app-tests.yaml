@@ -1,0 +1,27 @@
+name: App Tests
+
+on:
+  pull_request:
+    paths: ["services/**"]
+  push:
+    branches: [main]
+    paths: ["services/**"]
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        service: [upload, catalog, playback]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install deps
+        working-directory: services/${{ matrix.service }}
+        run: pip install -e ../_base -e ".[dev]"
+      - name: Pytest
+        working-directory: services/${{ matrix.service }}
+        run: pytest -v

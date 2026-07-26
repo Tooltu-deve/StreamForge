@@ -109,6 +109,8 @@ Each phase, Phase 0–7, runs through 5 steps, with no skipping. The phase's obj
 ---
 
 ### Phase 2 — Package & run the app + CI/CD (Week 4-5)
+**Status:** 🔄 In progress — decomposed into 3 slices on branch `feat/phase2`. **2a (ingress platform) ✅ Done**: AWS Load Balancer Controller installed via a separate `infra/platform/dev/` state layer (IRSA + Helm v3), `modules/alb-controller`, expanded `env/dev` outputs, ADR-0007 + runbook gd-2a, reduced CI gate; apply + smoke verified (controller Available, no IRSA errors). **2b** (app services + Docker + Helm + CloudFront) and **2c** (CI/CD build-scan-push-deploy) pending.
+
 **Requirements:** reach `app.<domain>` over HTTPS, upload + watch (no transcoding yet).
 
 **Tasks**

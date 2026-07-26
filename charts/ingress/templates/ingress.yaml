@@ -1,0 +1,42 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress 
+metadata: 
+  name: streamforge 
+  namespace: {{ .Values.namespace }}
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    # CloudFront terminates TLS; CF->ALB is http-only (avoids the *.tooltu.io.vn vs
+    # *.elb.amazonaws.com cert mismatch). ALB stays locked by the CF prefix list +
+    # the X-Origin-Secret header below.
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80}]'
+    # Services only expose /healthz,/readyz,/api/* — the default health check path "/"
+    # returns 404 -> targets unhealthy -> 502. Point it at /healthz.
+    alb.ingress.kubernetes.io/healthcheck-path: /healthz
+    alb.ingress.kubernetes.io/success-codes: "200"
+    alb.ingress.kubernetes.io/security-group-prefix-lists: {{ .Values.cloudfrontPrefixListId }}
+    alb.ingress.kubernetes.io/actions.deny: >
+      {"type":"fixed-response","fixedResponseConfig":{"contentType":"text/plain","statusCode":"403","messageBody":"Forbidden"}}
+    alb.ingress.kubernetes.io/conditions.catalog: >
+      [{"field":"http-header","httpHeaderConfig":{"httpHeaderName":"X-Origin-Secret","values":["{{ .Values.originSecret }}"]}}]
+    alb.ingress.kubernetes.io/conditions.upload: >
+      [{"field":"http-header","httpHeaderConfig":{"httpHeaderName":"X-Origin-Secret","values":["{{ .Values.originSecret }}"]}}]
+    alb.ingress.kubernetes.io/conditions.playback: >
+      [{"field":"http-header","httpHeaderConfig":{"httpHeaderName":"X-Origin-Secret","values":["{{ .Values.originSecret }}"]}}]
+spec: 
+  ingressClassName: alb
+  rules: 
+    - http: 
+        paths: 
+          - path: /api/catalog
+            pathType: Prefix
+            backend: { service: { name: catalog, port: {number: 80 } } }
+          - path: /api/upload 
+            pathType: Prefix 
+            backend: { service: { name: upload, port: { number: 80 } } }
+          - path: /api/playback
+            pathType: Prefix
+            backend: { service: { name: playback, port: { number: 80 } } }
+          - path: /
+            pathType: Prefix
+            backend: { service: { name: deny, port: { name: use-annotation } } }  

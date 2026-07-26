@@ -1,0 +1,72 @@
+name: Build Scan Push
+
+# Phase 2c: build service images -> Trivy scan -> push to ECR (OIDC, no keys).
+#   PR   -> build + scan only (gate, no push)
+#   main -> build + scan + push, tagged by git short SHA
+# Trivy is SOFT here (report only); Phase 6 turns it into a hard HIGH/CRITICAL gate.
+
+on:
+  pull_request:
+    paths: ["services/**", ".github/workflows/build-scan-push.yaml"]
+  push:
+    branches: [main]
+    paths: ["services/**", ".github/workflows/build-scan-push.yaml"]
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: ap-southeast-1
+  ECR_NAMESPACE: streamforge-dev
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        service: [catalog, upload, playback]
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to ECR
+        id: login
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Compute image ref
+        run: |
+          echo "IMAGE=${{ steps.login.outputs.registry }}/${ECR_NAMESPACE}/${{ matrix.service }}:sha-${GITHUB_SHA::12}" >> "$GITHUB_ENV"
+
+      # GH runners are amd64 = EKS t3.medium amd64, so a plain build is correct
+      # (this is the whole point of building in CI vs the Apple Silicon laptop).
+      - name: Build image
+        run: docker build -f "services/${{ matrix.service }}/Dockerfile" -t "$IMAGE" services/
+
+      - name: Trivy scan (soft — Phase 2)
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: ${{ env.IMAGE }}
+          severity: HIGH,CRITICAL
+          format: table
+          exit-code: "0"
+          ignore-unfixed: true
+
+      # Push only on main. Repos are IMMUTABLE; a re-run on the same SHA would
+      # fail PutImage, so skip when the tag already exists (idempotent re-run).
+      - name: Push to ECR
+        if: github.event_name == 'push'
+        run: |
+          if aws ecr describe-images \
+              --repository-name "${ECR_NAMESPACE}/${{ matrix.service }}" \
+              --image-ids imageTag="sha-${GITHUB_SHA::12}" >/dev/null 2>&1; then
+            echo "Tag sha-${GITHUB_SHA::12} already in ECR — skipping push."
+          else
+            docker push "$IMAGE"
+          fi

@@ -8,7 +8,19 @@ docs/notes/
 *.tfstate
 *.tfstate.*
 crash.log
-*.tfvars          
+*.tfvars
 !example.tfvars
 override.tf
 override.tf.json
+
+# Python
+**/.venv/
+**/__pycache__/
+*.py[cod]
+**/*.egg-info/
+.pytest_cache/
+**/.pytest_cache/
+
+# Node / frontend
+**/node_modules/
+frontend/dist/

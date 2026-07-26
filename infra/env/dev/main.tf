@@ -10,6 +10,7 @@ module "vpc" {
 module "s3" {
   source      = "../../modules/s3"
   name_prefix = var.name_prefix
+  app_domain  = var.app_domain
 }
 
 module "dynamodb" {
@@ -37,3 +38,6 @@ module "eks" {
   public_access_cidrs          = var.public_access_cidrs
   cluster_admin_principal_arns = var.cluster_admin_principal_arns
 }
+
+# CloudFront + its ALB/cert data sources moved to infra/edge/dev (edge layer) so the
+# ALB lookup lives in a layer torn down before the ALB, killing the destroy-time jam.

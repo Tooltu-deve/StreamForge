@@ -1,0 +1,4 @@
+namespace: streamforge
+cloudfrontPrefixListId: ""
+originSecret: ""
+

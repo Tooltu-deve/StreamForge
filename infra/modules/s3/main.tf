@@ -1,6 +1,7 @@
 resource "aws_s3_bucket" "this" {
-  for_each = toset(["raw", "transcoded", "frontend"])
-  bucket   = "${var.name_prefix}-${each.key}"
+  for_each      = toset(["raw", "transcoded", "frontend"])
+  bucket        = "${var.name_prefix}-${each.key}"
+  force_destroy = true
   tags = {
     "Name" = "${var.name_prefix}-${each.key}"
   }
@@ -14,6 +15,17 @@ resource "aws_s3_bucket_public_access_block" "this" {
   block_public_policy     = true
   ignore_public_acls      = true
   restrict_public_buckets = true
+}
+
+
+resource "aws_s3_bucket_cors_configuration" "raw" {
+  bucket = aws_s3_bucket.this["raw"].id
+  cors_rule {
+    allowed_methods = ["PUT", "GET"]
+    allowed_origins = ["https://${var.app_domain}"]
+    allowed_headers = ["*"]
+    max_age_seconds = 3000
+  }
 }
 
 resource "aws_s3_bucket_versioning" "frontend" {

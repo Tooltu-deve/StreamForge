@@ -1,5 +1,4 @@
-namespace: streamforge 
-albCertArn: "" 
-cloudfrontPrefixListId: "" 
-originSecret: "" 
+namespace: streamforge
+cloudfrontPrefixListId: ""
+originSecret: ""
 

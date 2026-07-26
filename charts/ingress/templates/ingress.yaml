@@ -6,8 +6,14 @@ metadata:
   annotations:
     alb.ingress.kubernetes.io/scheme: internet-facing
     alb.ingress.kubernetes.io/target-type: ip
-    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
-    alb.ingress.kubernetes.io/certificate-arn: {{ .Values.albCertArn }}
+    # CloudFront terminates TLS; CF->ALB is http-only (avoids the *.tooltu.io.vn vs
+    # *.elb.amazonaws.com cert mismatch). ALB stays locked by the CF prefix list +
+    # the X-Origin-Secret header below.
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80}]'
+    # Services only expose /healthz,/readyz,/api/* — the default health check path "/"
+    # returns 404 -> targets unhealthy -> 502. Point it at /healthz.
+    alb.ingress.kubernetes.io/healthcheck-path: /healthz
+    alb.ingress.kubernetes.io/success-codes: "200"
     alb.ingress.kubernetes.io/security-group-prefix-lists: {{ .Values.cloudfrontPrefixListId }}
     alb.ingress.kubernetes.io/actions.deny: >
       {"type":"fixed-response","fixedResponseConfig":{"contentType":"text/plain","statusCode":"403","messageBody":"Forbidden"}}

@@ -94,7 +94,35 @@ data "aws_iam_policy_document" "ci_permissions" {
     ]
     resources = ["*"]
   }
+
+  # -- ECR push (Phase 2c build-scan-push workflow) --
+  # GetAuthorizationToken must be on "*" (AWS API design; not resource-scopable).
+  statement {
+    sid       = "EcrAuthToken"
+    effect    = "Allow"
+    actions   = ["ecr:GetAuthorizationToken"]
+    resources = ["*"]
+  }
+
+  # Push/pull layers + images, scoped to this project's ECR repos.
+  # name_prefix "streamforge-dev" mirrors infra/env/dev (kept in sync manually;
+  # foundation doesn't import env/dev state).
+  statement {
+    sid    = "EcrPushPull"
+    effect = "Allow"
+    actions = [
+      "ecr:BatchCheckLayerAvailability",
+      "ecr:InitiateLayerUpload",
+      "ecr:UploadLayerPart",
+      "ecr:CompleteLayerUpload",
+      "ecr:PutImage",
+      "ecr:BatchGetImage",
+    ]
+    resources = ["arn:aws:ecr:${var.region}:${data.aws_caller_identity.current.account_id}:repository/streamforge-dev/*"]
+  }
 }
+
+data "aws_caller_identity" "current" {}
 
 resource "aws_iam_role_policy" "ci_permissions" {
   name   = "streamforge-ci-permissions"

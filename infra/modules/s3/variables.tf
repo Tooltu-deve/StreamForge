@@ -9,3 +9,6 @@ variable "raw_expiration_days" {
   default     = 7
 }
 
+variable "app_domain" {
+  type = string
+}

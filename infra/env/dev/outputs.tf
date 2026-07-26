@@ -26,6 +26,11 @@ output "raw_bucket_arn" {
   value = module.s3.bucket_arns["raw"]
 }
 
+output "frontend_bucket_arn" {
+  description = "Frontend bucket ARN (consumed by the edge/CloudFront layer)"
+  value       = module.s3.bucket_arns["frontend"]
+}
+
 output "table_arn" {
   value = module.dynamodb.table_arn
 }

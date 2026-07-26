@@ -39,9 +39,3 @@ variable "app_domain" {
   sensitive = true
   type      = string
 }
-
-variable "origin_secret" {
-  sensitive = true
-  type      = string
-}
-

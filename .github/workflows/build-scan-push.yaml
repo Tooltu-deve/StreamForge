@@ -50,7 +50,7 @@ jobs:
         run: docker build -f "services/${{ matrix.service }}/Dockerfile" -t "$IMAGE" services/
 
       - name: Trivy scan (soft — Phase 2)
-        uses: aquasecurity/trivy-action@0.36.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: ${{ env.IMAGE }}
           severity: HIGH,CRITICAL

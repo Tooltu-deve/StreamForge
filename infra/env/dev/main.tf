@@ -13,6 +13,17 @@ module "s3" {
   app_domain  = var.app_domain
 }
 
+resource "aws_s3_bucket_notification" "raw_eventbridge" {
+  bucket      = module.s3.bucket_names["raw"]
+  eventbridge = true
+}
+
+module "sqs" {
+  source         = "../../modules/sqs"
+  name_prefix    = var.name_prefix
+  raw_bucket_arn = module.s3.bucket_arns["raw"]
+}
+
 module "dynamodb" {
   source      = "../../modules/dynamodb"
   name_prefix = var.name_prefix
@@ -41,3 +52,4 @@ module "eks" {
 
 # CloudFront + its ALB/cert data sources moved to infra/edge/dev (edge layer) so the
 # ALB lookup lives in a layer torn down before the ALB, killing the destroy-time jam.
+

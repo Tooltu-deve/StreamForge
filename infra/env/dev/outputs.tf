@@ -34,3 +34,15 @@ output "frontend_bucket_arn" {
 output "table_arn" {
   value = module.dynamodb.table_arn
 }
+
+output "transcoded_bucket_arn" {
+  value = module.s3.bucket_arns["transcoded"]
+}
+
+output "queue_url" {
+  value = module.sqs.queue_url
+}
+
+output "queue_arn" {
+  value = module.sqs.queue_arn
+}

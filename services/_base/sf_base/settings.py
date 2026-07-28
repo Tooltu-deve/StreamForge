@@ -8,6 +8,8 @@ class Settings(BaseSettings):
     cognito_pool_id: str = ""
     cognito_client_id: str = ""
     presign_ttl: int = 900
+    transcoded_bucket: str = ""
+    queue_url: str = ""
 
 
 settings = Settings()

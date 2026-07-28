@@ -25,12 +25,15 @@ data "aws_acm_certificate" "cf" {
 }
 
 module "cloudfront" {
-  source                 = "../../modules/cloudfront"
-  frontend_bucket_id     = data.terraform_remote_state.core.outputs.bucket_names["frontend"]
-  frontend_bucket_arn    = data.terraform_remote_state.core.outputs.frontend_bucket_arn
-  frontend_bucket_domain = "${data.terraform_remote_state.core.outputs.bucket_names["frontend"]}.s3.${var.region}.amazonaws.com"
-  alb_dns_name           = data.aws_lb.api.dns_name
-  acm_cert_arn           = data.aws_acm_certificate.cf.arn
-  aliases                = [var.app_domain]
-  origin_secret          = var.origin_secret
+  source                   = "../../modules/cloudfront"
+  frontend_bucket_id       = data.terraform_remote_state.core.outputs.bucket_names["frontend"]
+  frontend_bucket_arn      = data.terraform_remote_state.core.outputs.frontend_bucket_arn
+  frontend_bucket_domain   = "${data.terraform_remote_state.core.outputs.bucket_names["frontend"]}.s3.${var.region}.amazonaws.com"
+  transcoded_bucket_id     = data.terraform_remote_state.core.outputs.bucket_names["transcoded"]
+  transcoded_bucket_arn    = data.terraform_remote_state.core.outputs.transcoded_bucket_arn
+  transcoded_bucket_domain = "${data.terraform_remote_state.core.outputs.bucket_names["transcoded"]}.s3.${var.region}.amazonaws.com"
+  alb_dns_name             = data.aws_lb.api.dns_name
+  acm_cert_arn             = data.aws_acm_certificate.cf.arn
+  aliases                  = [var.app_domain]
+  origin_secret            = var.origin_secret
 }

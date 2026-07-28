@@ -8,3 +8,7 @@ variable "origin_secret" {
   type      = string
   sensitive = true
 }
+
+variable "transcoded_bucket_id"     { type = string }
+variable "transcoded_bucket_arn"    { type = string }
+variable "transcoded_bucket_domain" { type = string } # <bucket>.s3.<region>.amazonaws.com

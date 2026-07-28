@@ -5,6 +5,13 @@ resource "aws_cloudfront_origin_access_control" "s3" {
   signing_protocol                  = "sigv4"
 }
 
+resource "aws_cloudfront_origin_access_control" "transcoded" {
+    name = "streamforge-transcoded-oac" 
+    origin_access_control_origin_type = "s3" 
+    signing_behavior = "always" 
+    signing_protocol = "sigv4"
+}
+
 resource "aws_cloudfront_distribution" "this" {
   enabled             = true
   default_root_object = "index.html"
@@ -14,6 +21,12 @@ resource "aws_cloudfront_distribution" "this" {
     origin_id                = "s3-frontend"
     domain_name              = var.frontend_bucket_domain
     origin_access_control_id = aws_cloudfront_origin_access_control.s3.id
+  }
+
+  origin {
+    origin_id = "s3-transcoded" 
+    domain_name = var.transcoded_bucket_domain
+    origin_access_control_id = aws_cloudfront_origin_access_control.transcoded.id 
   }
 
   origin {
@@ -49,6 +62,24 @@ resource "aws_cloudfront_distribution" "this" {
     origin_request_policy_id = "b689b0a8-53d0-40ab-baf2-68738e2966ac" # Managed-AllViewerExceptHostHeader
   }
 
+  ordered_cache_behavior {
+    path_pattern           = "/hls/*"
+    target_origin_id       = "s3-transcoded"
+    viewer_protocol_policy = "redirect-to-https"
+    allowed_methods        = ["GET", "HEAD"]
+    cached_methods         = ["GET", "HEAD"]
+    cache_policy_id        = "658327ea-f89d-4fab-a63d-7e88639e58f6"
+  }
+
+  ordered_cache_behavior {
+    path_pattern           = "/thumbs/*"
+    target_origin_id       = "s3-transcoded"
+    viewer_protocol_policy = "redirect-to-https"
+    allowed_methods        = ["GET", "HEAD"]
+    cached_methods         = ["GET", "HEAD"]
+    cache_policy_id        = "658327ea-f89d-4fab-a63d-7e88639e58f6"
+  }
+
   viewer_certificate {
     acm_certificate_arn      = var.acm_cert_arn
     ssl_support_method       = "sni-only"
@@ -76,6 +107,27 @@ data "aws_iam_policy_document" "frontend" {
       values   = [aws_cloudfront_distribution.this.arn]
     }
   }
+}
+
+data "aws_iam_policy_document" "transcoded" {
+    statement {
+        actions = ["s3:GetObject"]
+        resources = ["${var.transcoded_bucket_arn}/*"]
+        principals {
+          type = "Service" 
+          identifiers = ["cloudfront.amazonaws.com"]
+        }
+        condition {
+          test = "StringEquals"
+          variable = "AWS: SourceArn" 
+          values = [aws_cloudfront_distribution.this.arn]
+        }
+    }
+}
+
+resource "aws_s3_bucket_policy" "transcoded" {
+    bucket = var.transcoded_bucket_id
+    policy = data.aws_iam_policy_document.transcoded.json
 }
 
 resource "aws_s3_bucket_policy" "frontend" {

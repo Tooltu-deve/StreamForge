@@ -10,6 +10,6 @@ class Settings(BaseSettings):
     presign_ttl: int = 900
     transcoded_bucket: str = ""
     queue_url: str = ""
-
+    app_domain: str = ""
 
 settings = Settings()

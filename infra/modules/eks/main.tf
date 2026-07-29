@@ -144,6 +144,11 @@ resource "aws_eks_node_group" "spot" {
   }
 
   depends_on = [aws_iam_role_policy_attachment.node]
+
+  tags = {
+    "k8s.io/cluster-autoscaler/enabled" = "true"
+    "k8s.io/cluster-autoscaler/${var.cluster_name}" = "owned"
+  }
 }
 
 data "aws_iam_policy_document" "ebs_csi_assume" {

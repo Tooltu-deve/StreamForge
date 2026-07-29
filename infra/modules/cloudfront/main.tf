@@ -6,10 +6,10 @@ resource "aws_cloudfront_origin_access_control" "s3" {
 }
 
 resource "aws_cloudfront_origin_access_control" "transcoded" {
-    name = "streamforge-transcoded-oac" 
-    origin_access_control_origin_type = "s3" 
-    signing_behavior = "always" 
-    signing_protocol = "sigv4"
+  name                              = "streamforge-transcoded-oac"
+  origin_access_control_origin_type = "s3"
+  signing_behavior                  = "always"
+  signing_protocol                  = "sigv4"
 }
 
 resource "aws_cloudfront_distribution" "this" {
@@ -24,9 +24,9 @@ resource "aws_cloudfront_distribution" "this" {
   }
 
   origin {
-    origin_id = "s3-transcoded" 
-    domain_name = var.transcoded_bucket_domain
-    origin_access_control_id = aws_cloudfront_origin_access_control.transcoded.id 
+    origin_id                = "s3-transcoded"
+    domain_name              = var.transcoded_bucket_domain
+    origin_access_control_id = aws_cloudfront_origin_access_control.transcoded.id
   }
 
   origin {
@@ -110,24 +110,24 @@ data "aws_iam_policy_document" "frontend" {
 }
 
 data "aws_iam_policy_document" "transcoded" {
-    statement {
-        actions = ["s3:GetObject"]
-        resources = ["${var.transcoded_bucket_arn}/*"]
-        principals {
-          type = "Service" 
-          identifiers = ["cloudfront.amazonaws.com"]
-        }
-        condition {
-          test = "StringEquals"
-          variable = "AWS: SourceArn" 
-          values = [aws_cloudfront_distribution.this.arn]
-        }
+  statement {
+    actions   = ["s3:GetObject"]
+    resources = ["${var.transcoded_bucket_arn}/*"]
+    principals {
+      type        = "Service"
+      identifiers = ["cloudfront.amazonaws.com"]
     }
+    condition {
+      test     = "StringEquals"
+      variable = "AWS:SourceArn"
+      values   = [aws_cloudfront_distribution.this.arn]
+    }
+  }
 }
 
 resource "aws_s3_bucket_policy" "transcoded" {
-    bucket = var.transcoded_bucket_id
-    policy = data.aws_iam_policy_document.transcoded.json
+  bucket = var.transcoded_bucket_id
+  policy = data.aws_iam_policy_document.transcoded.json
 }
 
 resource "aws_s3_bucket_policy" "frontend" {

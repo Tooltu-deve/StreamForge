@@ -7,8 +7,10 @@ export default function App() {
   const [token, setToken] = useState(null);
   const [items, setItems] = useState([]);
   const [playUrl, setPlayUrl] = useState(null);
+  const [levels, setLevels] = useState([]);
   const api = token ? makeApi(token) : null;
   const videoRef = useRef(null);
+  const hlsRef = useRef(null);
 
 
   async function doLogin(e) {
@@ -34,15 +36,25 @@ export default function App() {
   useEffect(() => {
     const v = videoRef.current;
     if (!v || !playUrl) return;
-    if (v.canPlayType("application/vnd.apple.mpegurl")) {   // Safari: HLS native
-      v.src = playUrl;
-    } else if (Hls.isSupported()) {                          // Chrome/FF: hls.js
+    setLevels([]);                                          // reset khi đổi video
+    // Ưu tiên hls.js khi hỗ trợ MSE (desktop, kể cả Chrome tự nhận HLS native) -> có menu
+    // chọn rung + điều khiển ABR. Native chỉ dành cho nơi không có MSE (iOS Safari).
+    if (Hls.isSupported()) {
       const hls = new Hls();
+      hlsRef.current = hls;
       hls.loadSource(playUrl);
       hls.attachMedia(v);
-      return () => hls.destroy();                            // dọn khi đổi video
+      hls.on(Hls.Events.MANIFEST_PARSED, () => setLevels(hls.levels)); // lấy các rung
+      return () => { hls.destroy(); hlsRef.current = null; };          // dọn khi đổi video
+    } else if (v.canPlayType("application/vnd.apple.mpegurl")) {        // iOS Safari: HLS native
+      v.src = playUrl;
     }
   }, [playUrl]);
+
+  function setQuality(e) {
+    // -1 = Auto (ABR); i = ép cố định rung i
+    if (hlsRef.current) hlsRef.current.currentLevel = Number(e.target.value);
+  }
 
 
   if (!token)
@@ -61,8 +73,18 @@ export default function App() {
         <input name="file" type="file" />
         <button>Upload</button>
       </form>
-      <ul>{items.map((v) => <li key={v.videoId}><button onClick={() => watch(v.videoId)}>{v.filename}</button></li>)}</ul>
-      {playUrl && <video ref={videoRef} controls width="480" />}
+      <ul>{items.map((v) => <li key={v.videoID}><button onClick={() => watch(v.videoID)}>{v.filename}</button></li>)}</ul>
+      {playUrl && (
+        <div>
+          {levels.length > 0 && (
+            <select defaultValue="-1" onChange={setQuality}>
+              <option value="-1">Auto</option>
+              {levels.map((l, i) => <option key={i} value={i}>{l.height}p</option>)}
+            </select>
+          )}
+          <div><video ref={videoRef} controls width="480" /></div>
+        </div>
+      )}
     </div>
   );
 }

@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        service: [upload, catalog, playback]
+        service: [upload, catalog, playback, transcode-worker]
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v5

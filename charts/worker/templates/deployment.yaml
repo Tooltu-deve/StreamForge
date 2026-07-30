@@ -14,6 +14,15 @@ spec:
         app: {{ .Values.name }}
     spec: 
       serviceAccountName: {{ .Values.name }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
       containers:
         - name: {{ .Values.name }} 
           image: "{{ .Values.image.repo }}:{{ .Values.image.tag }}"

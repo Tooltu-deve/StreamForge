@@ -1,6 +1,13 @@
 name: transcode-worker
 image: { repo: "<ecr>/transcode-worker", tag: "dev" }
 serviceAccount: { roleArn: "<svc_role_arns.transcode-worker>" }
+nodeSelector:
+  workload: transcode
+tolerations:
+  - key: dedicated
+    value: transcode
+    operator: Equal 
+    effect: NoSchedule
 env:
   REGION: ap-southeast-1
   RAW_BUCKET: "<raw_bucket>"

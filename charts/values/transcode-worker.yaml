@@ -14,3 +14,7 @@ env:
   TRANSCODED_BUCKET: "<transcoded_bucket>"
   TABLE_NAME: "<table_name>"
   QUEUE_URL: "<queue_url>"
+keda:
+  enabled: true 
+  maxReplicas: 4
+  queueUrl: "<queue_url>"

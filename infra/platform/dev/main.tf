@@ -27,7 +27,7 @@ module "cluster_autoscaler" {
   oidc_provider_arn = data.terraform_remote_state.core.outputs.oidc_provider_arn
   oidc_provider_url = data.terraform_remote_state.core.outputs.oidc_provider_url
   chart_version     = var.ca_chart_version
-  depends_on = [module.alb_controller]
+  depends_on        = [module.alb_controller]
 }
 
 module "keda" {
@@ -38,5 +38,5 @@ module "keda" {
   oidc_provider_url = data.terraform_remote_state.core.outputs.oidc_provider_url
   queue_arn         = data.terraform_remote_state.core.outputs.queue_arn
   chart_version     = var.keda_chart_version
-  depends_on = [module.alb_controller]
+  depends_on        = [module.alb_controller]
 }

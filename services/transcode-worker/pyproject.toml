@@ -1,0 +1,15 @@
+[project]
+name = "sf-transcode-worker"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = ["sf-base"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "moto>=5"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["app*"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]

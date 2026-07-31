@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment 
+metadata: 
+  name: {{ .Values.name }}
+  namespace: {{ .Values.namespace }} 
+spec: 
+  replicas: {{ .Values.replicas }} 
+  selector: 
+    matchLabels: 
+      app: {{ .Values.name }}
+  template: 
+    metadata: 
+      labels: 
+        app: {{ .Values.name }}
+    spec: 
+      serviceAccountName: {{ .Values.name }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
+      containers:
+        - name: {{ .Values.name }} 
+          image: "{{ .Values.image.repo }}:{{ .Values.image.tag }}"
+          env: 
+            {{- range $k, $v := .Values.env }}
+            - name: {{ $k }} 
+              value: {{ $v | quote }}
+            {{- end }}
+          resources: 
+            {{- toYaml .Values.resources | nindent 12 }} 

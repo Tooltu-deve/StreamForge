@@ -23,3 +23,14 @@ variable "lbc_chart_version" {
   type        = string
   default     = "3.4.2"
 }
+
+variable "ca_chart_version" {
+  description = "cluster-autoscaler chart version (verify latest stable)"
+  type        = string
+  default     = "9.58.0"
+}
+variable "keda_chart_version" {
+  description = "KEDA chart version (verify latest stable)"
+  type        = string
+  default     = "2.20.1"
+}

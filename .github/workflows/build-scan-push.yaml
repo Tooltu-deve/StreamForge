@@ -75,30 +75,26 @@ jobs:
     needs: build
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
-    concurrency: 
-      group: gitops-bump
-      cancel-in-progress: false 
-    strategy:
-        matrix: 
-          service: [catalog, upload, playback, transcode-worker]
     steps:
-      - name: Checkout gitops repo 
-        uses: actions/checkout@v7 
-        with: 
-          repository: Tooltu-deve/StreamForge-Gitops 
+      - name: Checkout gitops repo
+        uses: actions/checkout@v7
+        with:
+          repository: Tooltu-deve/StreamForge-Gitops
           token: ${{ secrets.GITOPS_PAT }}
-          path: gitops 
+          path: gitops
 
-      - name: Bump image tag 
-        run: | 
+      - name: Bump image tags
+        run: |
           TAG="sha-${GITHUB_SHA::12}"
-          yq -i ".image.tag = \"$TAG\"" "gitops/values/${{ matrix.service }}.yaml"
+          for svc in catalog upload playback transcode-worker; do
+            yq -i ".image.tag = \"$TAG\"" "gitops/values/$svc.yaml"
+          done
 
-      - name: Commit + push 
-        working-directory: gitops 
-        run: | 
-          git config user.name "streamforge-ci"
+      - name: Commit + push
+        working-directory: gitops
+        run: |
+          git config user.name  "streamforge-ci"
           git config user.email "ci@streamforge.local"
-          if git diff --quiet; then echo "no change"; exit 0; fi 
-          git commit -am "ci: bump ${{ matrix.service }} to sha-${GITHUB_SHA::12}" 
-          git push 
+          if git diff --quiet; then echo "no change"; exit 0; fi
+          git commit -am "ci: bump all services to sha-${GITHUB_SHA::12}"
+          git push

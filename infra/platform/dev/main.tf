@@ -40,3 +40,10 @@ module "keda" {
   chart_version     = var.keda_chart_version
   depends_on        = [module.alb_controller]
 }
+
+module "argocd" {
+  source          = "../../modules/argocd"
+  chart_version   = var.argocd_chart_version
+  gitops_repo_url = "https://github.com/Tooltu-deve/StreamForge-Gitops.git"
+  depends_on      = [module.alb_controller]
+}

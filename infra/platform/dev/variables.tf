@@ -34,3 +34,9 @@ variable "keda_chart_version" {
   type        = string
   default     = "2.20.1"
 }
+
+variable "argocd_chart_version" {
+  description = "argo-cd chart version (verify latest stable)"
+  type        = string
+  default     = "10.2.2"
+}

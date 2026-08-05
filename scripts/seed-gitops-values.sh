@@ -30,6 +30,7 @@ serviceAccount: { roleArn: "$(r catalog)" }
 env:
   REGION: $REGION
   TABLE_NAME: "$TABLE"
+rollout: { enabled: true }
 EOF
 
 cat > "$GITOPS_DIR/values/upload.yaml" <<EOF

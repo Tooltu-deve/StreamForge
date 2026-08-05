@@ -2,9 +2,13 @@ from fastapi import FastAPI, HTTPException
 from boto3.dynamodb.conditions import Key
 from sf_base.health import router as health
 from sf_base.aws import ddb_table
+from prometheus_fastapi_instrumentator import Instrumentator, metrics
+
 
 app = FastAPI()
 app.include_router(health)
+Instrumentator().instrument(app).add(metrics.requests()).expose(app)
+
 
 
 @app.get("/api/catalog")

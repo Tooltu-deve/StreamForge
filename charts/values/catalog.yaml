@@ -1,6 +1,0 @@
-name: catalog
-image: { repo: "<ecr>/catalog", tag: "dev" }
-serviceAccount: { roleArn: "<svc_role_arns.catalog>" }
-env:
-  REGION: ap-southeast-1
-  TABLE_NAME: "<table_name>"

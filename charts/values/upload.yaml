@@ -1,9 +1,0 @@
-name: upload
-image: { repo: "<ecr>/upload", tag: "dev" }
-serviceAccount: { roleArn: "<svc_role_arns.upload>" }
-env:
-  REGION: ap-southeast-1
-  RAW_BUCKET: "<raw_bucket>"
-  TABLE_NAME: "<table_name>"
-  COGNITO_POOL_ID: "<user_pool_id>"
-  COGNITO_CLIENT_ID: "<app_client_id>"

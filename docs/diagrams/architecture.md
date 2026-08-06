@@ -32,7 +32,6 @@ flowchart LR
         Catalog["catalog-service"]
         Upload["upload-service"]
         Playback["playback-service"]
-        Membership["membership-service"]
     end
 
     DDB[("DynamoDB<br/>metadata")]
@@ -43,32 +42,28 @@ flowchart LR
         Worker["transcode-worker<br/>FFmpeg · spot · KEDA"]
     end
 
-    PayOS["payOS (sandbox)"]
     SM["Secrets Manager<br/>CloudFront private key"]
 
     User -->|DNS| R53
     User -->|HTTPS| WAF --> CF
-    PayOS -->|webhook| WAF
     ACM -.-> CF
     CF -->|default| S3front
     CF -->|OAC| S3trans
     CF -->|/api/* origin| ALB
     User -->|login → JWT| Cognito
-    ALB --> Catalog & Upload & Playback & Membership
+    ALB --> Catalog & Upload & Playback
     Catalog --> DDB
     Upload -->|presigned URL| S3raw
     Playback -->|verify tier| Cognito
     Playback -->|signed cookie| User
     Playback -.->|read key| SM
-    Membership -->|create payment link| PayOS
-    Membership -->|promote group| Cognito
 
     S3raw -->|object created| EB --> SQS --> Worker
     Worker -->|HLS renditions| S3trans
     Worker -->|update status| DDB
 ```
 
-**Legend:** solid = synchronous request; dotted = supporting/secret access; the pipeline (EventBridge→SQS→Worker) is **asynchronous**. All public inbound traffic — user requests **and** the payOS webhook — enters through **AWS WAF → CloudFront**; the ALB accepts traffic **only from CloudFront** (origin secret header verified at the ALB + security-group scoping). Egress calls (e.g. `membership-service` → payOS) leave via NAT.
+**Legend:** solid = synchronous request; dotted = supporting/secret access; the pipeline (EventBridge→SQS→Worker) is **asynchronous**. All public inbound traffic enters through **AWS WAF → CloudFront**; the ALB accepts traffic **only from CloudFront** (origin secret header verified at the ALB + security-group scoping).
 
 ---
 

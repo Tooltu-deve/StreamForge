@@ -20,22 +20,21 @@ The application is deliberately ordinary. The point of the project is the platfo
 ### Data plane
 
 <!-- DATA PLANE DIAGRAM — export docs/diagrams/streamforge-data-plane.drawio to PNG, then uncomment -->
-<!--
-  ![StreamForge data plane](docs/diagrams/streamforge-data-plane.png)
--->
 
-> **📐 Placeholder** — export [streamforge-data-plane.drawio](docs/diagrams/streamforge-data-plane.drawio) to `docs/diagrams/streamforge-data-plane.png` and uncomment the line above.
+  ![StreamForge data plane](docs/diagrams/streamforge-data-plane.png)
+
+
 
 A viewer hits CloudFront, the single public entry point: it serves the React SPA from S3, proxies `/api/*` to an ALB in front of EKS, and serves HLS segments from the transcoded bucket via OAC. The ALB only accepts traffic carrying CloudFront's origin-secret header. Uploads go straight from the browser to S3 through a presigned URL; the resulting `ObjectCreated` event flows through EventBridge into SQS, where KEDA scales an FFmpeg worker on spot capacity from zero to turn it into HLS renditions. Playback checks the viewer's Cognito group against the video's `tier_required` and, if allowed, returns a short-lived CloudFront signed cookie.
 
 ### Delivery pipeline
 
 <!-- DELIVERY PIPELINE DIAGRAM — export docs/diagrams/streamforge-delivery-pipeline.drawio to PNG, then uncomment -->
-<!--
-  ![StreamForge delivery pipeline](docs/diagrams/streamforge-delivery-pipeline.png)
--->
 
-> **📐 Placeholder** — export [streamforge-delivery-pipeline.drawio](docs/diagrams/streamforge-delivery-pipeline.drawio) to `docs/diagrams/streamforge-delivery-pipeline.png` and uncomment the line above.
+  ![StreamForge delivery pipeline](docs/diagrams/streamforge-delivery-pipeline.png)
+
+
+
 
 A push to `main` triggers CI, which builds each service image, scans it, and pushes it to ECR over an OIDC-assumed role — no long-lived AWS keys exist anywhere. CI's only deploy action is committing the new image tag into the config repo; it never touches the cluster. ArgoCD reconciles that repo, Argo Rollouts shifts traffic to the new version in canary steps, and an AnalysisTemplate backed by Prometheus rolls the release back on its own if error rate or latency degrade.
 

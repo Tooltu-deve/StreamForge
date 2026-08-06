@@ -46,3 +46,6 @@ output "queue_url" {
 output "queue_arn" {
   value = module.sqs.queue_arn
 }
+
+output "cf_signing_secret_arn" { value = aws_secretsmanager_secret.cf_signing.arn }
+output "cf_signing_secret_name" { value = aws_secretsmanager_secret.cf_signing.name }

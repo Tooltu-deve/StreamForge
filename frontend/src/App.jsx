@@ -131,6 +131,7 @@ export default function App() {
   const [items, setItems] = useState([]);
   const [current, setCurrent] = useState(null); // { video, playUrl }
   const [uploading, setUploading] = useState(false);
+  const [tier, setTier] = useState("free");
   const fileRef = useRef(null);
   const api = token ? makeApi(token) : null;
 
@@ -150,7 +151,7 @@ export default function App() {
     if (!file) return;
     setUploading(true);
     try {
-      const { uploadUrl } = await api.createUpload(file.name);
+      const { uploadUrl } = await api.createUpload(file.name, tier);
       await fetch(uploadUrl, { method: "PUT", body: file }); // PUT thẳng lên S3 (presigned)
       await refresh();
     } finally {
@@ -190,6 +191,10 @@ export default function App() {
           <span className="subnav-title">Library</span>
           <div className="subnav-actions">
             <button className="text-link" onClick={refresh}>Refresh</button>
+            <select className="tier-select" value={tier} onChange={(e) => setTier(e.target.value)} aria-label="Upload tier">
+              <option value="free">Free</option>
+              <option value="premium">Premium</option>
+            </select>
             <button className="btn-pill" onClick={() => fileRef.current.click()} disabled={uploading}>
               {uploading ? "Uploading…" : "Upload video"}
             </button>

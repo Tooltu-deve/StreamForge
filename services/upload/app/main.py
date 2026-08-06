@@ -12,6 +12,7 @@ app.include_router(health)
 
 class UploadReq(BaseModel):
     filename: str
+    tier_required: str = "free"
 
 @app.post("/api/upload")
 def upload(req: UploadReq, user=Depends(current_user)):
@@ -29,6 +30,7 @@ def upload(req: UploadReq, user=Depends(current_user)):
             "SK": "METADATA",
             "videoID": vid,
             "filename": req.filename,
+            "tier_required": req.tier_required if req.tier_required in ("free", "premium") else "free",
             "owner": user["sub"],
             "status": "uploaded",
             "raw_key": key,

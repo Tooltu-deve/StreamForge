@@ -31,3 +31,9 @@ variable "origin_secret" {
   sensitive = true
   type      = string
 }
+
+variable "cf_public_key_pem" {
+  description = "CloudFront signing public key PEM (from openssl, generated at deploy)"
+  type        = string
+}
+

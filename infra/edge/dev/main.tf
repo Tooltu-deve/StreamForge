@@ -36,4 +36,5 @@ module "cloudfront" {
   acm_cert_arn             = data.aws_acm_certificate.cf.arn
   aliases                  = [var.app_domain]
   origin_secret            = var.origin_secret
+  signing_public_key_pem   = var.cf_public_key_pem
 }

@@ -69,6 +69,7 @@ resource "aws_cloudfront_distribution" "this" {
     allowed_methods        = ["GET", "HEAD"]
     cached_methods         = ["GET", "HEAD"]
     cache_policy_id        = "658327ea-f89d-4fab-a63d-7e88639e58f6"
+    trusted_key_groups     = [aws_cloudfront_key_group.signing.id]
   }
 
   ordered_cache_behavior {
@@ -133,4 +134,15 @@ resource "aws_s3_bucket_policy" "transcoded" {
 resource "aws_s3_bucket_policy" "frontend" {
   bucket = var.frontend_bucket_id
   policy = data.aws_iam_policy_document.frontend.json
+}
+
+resource "aws_cloudfront_public_key" "signing" {
+  name        = "streamforge-dev-signing"
+  encoded_key = var.signing_public_key_pem
+  comment     = "HLS signed-cookie key"
+}
+
+resource "aws_cloudfront_key_group" "signing" {
+  name  = "streamforge-dev-signing"
+  items = [aws_cloudfront_public_key.signing.id]
 }

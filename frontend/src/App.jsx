@@ -46,7 +46,7 @@ function Login({ onLogin }) {
   );
 }
 
-function Player({ video, playUrl, onClose }) {
+function Player({ video, playUrl, onClose, onRefresh }) {
   const videoRef = useRef(null);
   const hlsRef = useRef(null);
   const [levels, setLevels] = useState([]);
@@ -60,11 +60,18 @@ function Player({ video, playUrl, onClose }) {
     // Ưu tiên hls.js khi hỗ trợ MSE (desktop) -> có menu chọn chất lượng + ABR.
     // Native chỉ dành cho nơi không có MSE (iOS Safari).
     if (Hls.isSupported()) {
-      const hls = new Hls();
+      // withCredentials: gửi kèm CloudFront signed cookie ở mỗi request segment (cùng origin).
+      const hls = new Hls({ xhrSetup: (xhr) => { xhr.withCredentials = true; } });
       hlsRef.current = hls;
       hls.loadSource(playUrl);
       hls.attachMedia(v);
       hls.on(Hls.Events.MANIFEST_PARSED, () => setLevels(hls.levels));
+      // Cookie hết hạn -> CloudFront 403 -> xin cookie mới rồi tải tiếp (luồng short-lived).
+      hls.on(Hls.Events.ERROR, (_e, data) => {
+        if (data.fatal && data.type === Hls.ErrorTypes.NETWORK_ERROR && data.response?.code === 403) {
+          onRefresh().then(() => hls.startLoad()).catch(() => {});
+        }
+      });
       return () => { hls.destroy(); hlsRef.current = null; };
     } else if (v.canPlayType("application/vnd.apple.mpegurl")) {
       v.src = playUrl;
@@ -209,6 +216,7 @@ export default function App() {
           video={current.video}
           playUrl={current.playUrl}
           onClose={() => setCurrent(null)}
+          onRefresh={() => api.playback(current.video.videoID)}
         />
       )}
 

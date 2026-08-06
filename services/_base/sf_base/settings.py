@@ -11,5 +11,7 @@ class Settings(BaseSettings):
     transcoded_bucket: str = ""
     queue_url: str = ""
     app_domain: str = ""
+    cf_signing_secret: str = ""   
+    cf_cookie_ttl: int = 600
 
 settings = Settings()

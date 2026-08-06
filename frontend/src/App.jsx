@@ -46,7 +46,7 @@ function Login({ onLogin }) {
   );
 }
 
-function Player({ video, playUrl, onClose }) {
+function Player({ video, playUrl, onClose, onRefresh }) {
   const videoRef = useRef(null);
   const hlsRef = useRef(null);
   const [levels, setLevels] = useState([]);
@@ -60,11 +60,18 @@ function Player({ video, playUrl, onClose }) {
     // Ưu tiên hls.js khi hỗ trợ MSE (desktop) -> có menu chọn chất lượng + ABR.
     // Native chỉ dành cho nơi không có MSE (iOS Safari).
     if (Hls.isSupported()) {
-      const hls = new Hls();
+      // withCredentials: gửi kèm CloudFront signed cookie ở mỗi request segment (cùng origin).
+      const hls = new Hls({ xhrSetup: (xhr) => { xhr.withCredentials = true; } });
       hlsRef.current = hls;
       hls.loadSource(playUrl);
       hls.attachMedia(v);
       hls.on(Hls.Events.MANIFEST_PARSED, () => setLevels(hls.levels));
+      // Cookie hết hạn -> CloudFront 403 -> xin cookie mới rồi tải tiếp (luồng short-lived).
+      hls.on(Hls.Events.ERROR, (_e, data) => {
+        if (data.fatal && data.type === Hls.ErrorTypes.NETWORK_ERROR && data.response?.code === 403) {
+          onRefresh().then(() => hls.startLoad()).catch(() => {});
+        }
+      });
       return () => { hls.destroy(); hlsRef.current = null; };
     } else if (v.canPlayType("application/vnd.apple.mpegurl")) {
       v.src = playUrl;
@@ -131,6 +138,7 @@ export default function App() {
   const [items, setItems] = useState([]);
   const [current, setCurrent] = useState(null); // { video, playUrl }
   const [uploading, setUploading] = useState(false);
+  const [tier, setTier] = useState("free");
   const fileRef = useRef(null);
   const api = token ? makeApi(token) : null;
 
@@ -150,7 +158,7 @@ export default function App() {
     if (!file) return;
     setUploading(true);
     try {
-      const { uploadUrl } = await api.createUpload(file.name);
+      const { uploadUrl } = await api.createUpload(file.name, tier);
       await fetch(uploadUrl, { method: "PUT", body: file }); // PUT thẳng lên S3 (presigned)
       await refresh();
     } finally {
@@ -190,6 +198,10 @@ export default function App() {
           <span className="subnav-title">Library</span>
           <div className="subnav-actions">
             <button className="text-link" onClick={refresh}>Refresh</button>
+            <select className="tier-select" value={tier} onChange={(e) => setTier(e.target.value)} aria-label="Upload tier">
+              <option value="free">Free</option>
+              <option value="premium">Premium</option>
+            </select>
             <button className="btn-pill" onClick={() => fileRef.current.click()} disabled={uploading}>
               {uploading ? "Uploading…" : "Upload video"}
             </button>
@@ -204,6 +216,7 @@ export default function App() {
           video={current.video}
           playUrl={current.playUrl}
           onClose={() => setCurrent(null)}
+          onRefresh={() => api.playback(current.video.videoID)}
         />
       )}
 

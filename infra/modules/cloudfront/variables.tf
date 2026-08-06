@@ -9,6 +9,11 @@ variable "origin_secret" {
   sensitive = true
 }
 
-variable "transcoded_bucket_id"     { type = string }
-variable "transcoded_bucket_arn"    { type = string }
+variable "transcoded_bucket_id" { type = string }
+variable "transcoded_bucket_arn" { type = string }
 variable "transcoded_bucket_domain" { type = string } # <bucket>.s3.<region>.amazonaws.com
+
+variable "signing_public_key_pem" {
+  description = "CloudFront signed-cookie public key (PEM). Public, not secret."
+  type        = string
+}

@@ -67,6 +67,11 @@ data "aws_iam_policy_document" "playback" {
     actions   = ["dynamodb:GetItem"]
     resources = [data.terraform_remote_state.core.outputs.table_arn]
   }
+
+  statement {
+    actions   = ["secretsmanager:GetSecretValue"]
+    resources = [data.terraform_remote_state.core.outputs.cf_signing_secret_arn]
+  }
 }
 
 resource "aws_iam_role_policy" "svc" {

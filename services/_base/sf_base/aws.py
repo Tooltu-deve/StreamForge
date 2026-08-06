@@ -19,3 +19,6 @@ def s3():
 
 def ddb_table():
     return boto3.resource("dynamodb", region_name=settings.region).Table(settings.table_name)
+
+def secrets_client():
+    return boto3.client("secretsmanager", region_name=settings.region)

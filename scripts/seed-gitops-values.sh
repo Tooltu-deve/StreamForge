@@ -6,6 +6,7 @@ set -euo pipefail
 : "${GITOPS_DIR:?set GITOPS_DIR to the streamforge-gitops checkout}"
 REGION=ap-southeast-1
 ACCOUNT=252773257724
+APP_DOMAIN=app.tooltu.io.vn
 ECR="$ACCOUNT.dkr.ecr.$REGION.amazonaws.com/streamforge-dev"
 CORE="terraform -chdir=infra/env/dev output -raw"
 CORE_JSON="terraform -chdir=infra/env/dev output -json"
@@ -17,6 +18,7 @@ TRANSCODED=$($CORE_JSON bucket_names | jq -r .transcoded)
 QUEUE=$($CORE queue_url)
 POOL=$($CORE user_pool_id)
 CLIENT=$($CORE app_client_id)
+CF_SECRET=$($CORE cf_signing_secret_name)
 ROLES=$(eval "$PLAT")
 r() { echo "$ROLES" | jq -r --arg k "$1" '.[$k]'; }
 
@@ -30,6 +32,7 @@ serviceAccount: { roleArn: "$(r catalog)" }
 env:
   REGION: $REGION
   TABLE_NAME: "$TABLE"
+rollout: { enabled: true }
 EOF
 
 cat > "$GITOPS_DIR/values/upload.yaml" <<EOF
@@ -54,6 +57,9 @@ env:
   TABLE_NAME: "$TABLE"
   COGNITO_POOL_ID: "$POOL"
   COGNITO_CLIENT_ID: "$CLIENT"
+  APP_DOMAIN: "$APP_DOMAIN"
+  CF_SIGNING_SECRET: "$CF_SECRET"
+  CF_COOKIE_TTL: "600"
 EOF
 
 cat > "$GITOPS_DIR/values/transcode-worker.yaml" <<EOF

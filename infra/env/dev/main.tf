@@ -53,3 +53,7 @@ module "eks" {
 # CloudFront + its ALB/cert data sources moved to infra/edge/dev (edge layer) so the
 # ALB lookup lives in a layer torn down before the ALB, killing the destroy-time jam.
 
+resource "aws_secretsmanager_secret" "cf_signing" {
+  name                    = "streamforge-dev/cf-signing"
+  recovery_window_in_days = 0
+}

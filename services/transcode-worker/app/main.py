@@ -40,7 +40,7 @@ def process(video_id: str) -> str:
         if e.response["Error"]["Code"] == "ConditionalCheckFailedException":
             return "skipped"       # đã processing/ready -> message trùng
         raise
-    
+
 
     # --- Transcode trong thư mục tạm, tự dọn ---
     with tempfile.TemporaryDirectory() as tmp:
@@ -70,6 +70,7 @@ def _video_id_from_event(body: dict) -> str:
     # EventBridge S3 "Object Created": detail.object.key = "raw/<id>"
     key = body["detail"]["object"]["key"]
     return key.split("/", 1)[1]
+
 
 
 def run() -> None:

@@ -40,6 +40,7 @@ def process(video_id: str) -> str:
         if e.response["Error"]["Code"] == "ConditionalCheckFailedException":
             return "skipped"       # đã processing/ready -> message trùng
         raise
+    
 
     # --- Transcode trong thư mục tạm, tự dọn ---
     with tempfile.TemporaryDirectory() as tmp:
